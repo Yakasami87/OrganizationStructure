@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using OrganizationStructureService.Services.RoleService;
+using OrganizationStructureService.SignalIR;
 using OrganizationStructureShared.Models.DTOs;
 
 namespace OrganizationStructureService.Controllers
@@ -10,10 +12,12 @@ namespace OrganizationStructureService.Controllers
     public class RoleController : ControllerBase
     {
         private readonly IRoleService _roleService;
+        private readonly IHubContext<MessageHub> _messageHub;
 
-        public RoleController(IRoleService roleService)
+        public RoleController(IRoleService roleService, IHubContext<MessageHub> messageHub)
         {
-                _roleService = roleService;
+            _roleService = roleService;
+            _messageHub = messageHub;
         }
 
         [HttpGet("Get-Roles")]
@@ -33,6 +37,8 @@ namespace OrganizationStructureService.Controllers
 
             if (!response.Success) return BadRequest(response);
 
+            await _messageHub.Clients.All.SendAsync("Refresh", "Roles");
+
             return Ok(response);
         }
 
@@ -43,6 +49,8 @@ namespace OrganizationStructureService.Controllers
 
             if (!response.Success) return BadRequest(response);
 
+            await _messageHub.Clients.All.SendAsync("Refresh", "Roles");
+
             return Ok(response);
         }
 
@@ -52,6 +60,8 @@ namespace OrganizationStructureService.Controllers
             var response = await _roleService.DeleteRoles(roleId);
 
             if (!response.Success) return BadRequest(response);
+
+            await _messageHub.Clients.All.SendAsync("Refresh", "Roles");
 
             return Ok(response);
         }

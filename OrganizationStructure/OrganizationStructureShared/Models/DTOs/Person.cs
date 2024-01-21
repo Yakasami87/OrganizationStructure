@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace OrganizationStructureShared.Models.DTOs
 {
-    public class PersonDTO
+    public class PersonDTO 
     {
         public int Id { get; set; }
         public string FirstName { get; set; }

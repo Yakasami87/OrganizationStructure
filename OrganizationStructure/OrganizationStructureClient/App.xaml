@@ -9,6 +9,13 @@
             <Image x:Key="PersonAdd" Source="../Resources/Images/Person-Add.png" />
             <Image x:Key="PersonEdit" Source="../Resources/Images/Person-Edit.png" />
             <Image x:Key="PersonRemove" Source="../Resources/Images/Person-Remove.png" />
+
+            <Image x:Key="RoleAdd" Source="../Resources/Images/Role-Add.png" />
+            <Image x:Key="RoleEdit" Source="../Resources/Images/Role-Edit.png" />
+            <Image x:Key="RoleRemove" Source="../Resources/Images/Role-Remove.png" />
+            
+            <Image x:Key="Save" Source="../Resources/Images/Save.png" />
+            <Image x:Key="Close" Source="../Resources/Images/Close.png" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

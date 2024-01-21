@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using OrganizationStructureService.Services.PersonService;
+using OrganizationStructureService.SignalIR;
 
 namespace OrganizationStructureService.Controllers
 {
@@ -9,18 +11,20 @@ namespace OrganizationStructureService.Controllers
     public class PersonController : ControllerBase
     {
         private readonly IPersonService _personService;
+        private readonly IHubContext<MessageHub> _messageHub;
 
-        public PersonController(IPersonService personService)
+        public PersonController(IPersonService personService, IHubContext<MessageHub> messageHub)
         {
-                _personService = personService;
+            _personService = personService;
+            _messageHub = messageHub;
         }
 
         [HttpGet("Get-Persons")]
         public async Task<ActionResult<ServiceResponse<List<PersonDTO>>>> GetPersons()
         {
-            var response = await _personService.GetPersons(); 
+            var response = await _personService.GetPersons();
 
-            if(!response.Success) return BadRequest(response);
+            if (!response.Success) return BadRequest(response);
 
             return Ok(response);
         }
@@ -32,6 +36,8 @@ namespace OrganizationStructureService.Controllers
 
             if (!response.Success) return BadRequest(response);
 
+            await _messageHub.Clients.All.SendAsync("Refresh","Persons");
+
             return Ok(response);
         }
 
@@ -42,6 +48,8 @@ namespace OrganizationStructureService.Controllers
 
             if (!response.Success) return BadRequest(response);
 
+            await _messageHub.Clients.All.SendAsync("Refresh", "Persons");
+
             return Ok(response);
         }
 
@@ -51,6 +59,8 @@ namespace OrganizationStructureService.Controllers
             var response = await _personService.DeletePersons(personId);
 
             if (!response.Success) return BadRequest(response);
+
+            await _messageHub.Clients.All.SendAsync("Refresh", "Persons");
 
             return Ok(response);
         }
