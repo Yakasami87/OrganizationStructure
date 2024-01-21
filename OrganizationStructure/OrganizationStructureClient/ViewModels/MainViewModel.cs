@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using OrganizationStructureClient.Models;
 using OrganizationStructureShared.Models;
 using OrganizationStructureShared.Models.DTOs;
 using System;
@@ -24,7 +23,7 @@ namespace OrganizationStructureClient.ViewModels
         #region Private Properties
 
         private HttpClient _httpClient;
-        private ObservableCollection<OrganizationStructureModel> _personsTree = null;
+        private ObservableCollection<PersonDTO> _personsTree = null;
 
         #endregion
 
@@ -44,7 +43,7 @@ namespace OrganizationStructureClient.ViewModels
             get => $"ver. {GetType().Assembly.GetName().Version}";
         }
 
-        public ObservableCollection<OrganizationStructureModel> PersonsTree
+        public ObservableCollection<PersonDTO> PersonsTree
         {
             get => _personsTree;
 
@@ -90,7 +89,7 @@ namespace OrganizationStructureClient.ViewModels
 
                 if (response == null || response.Data == null) throw new Exception("Unable to load Persons.");
 
-                PersonsTree = new ObservableCollection<OrganizationStructureModel>();
+                PersonsTree = new ObservableCollection<PersonDTO>();
 
                 CreateTree(response.Data);
 
@@ -108,20 +107,14 @@ namespace OrganizationStructureClient.ViewModels
 
         private void CreateTree(List<PersonDTO> persons)
         {
-            foreach (var person in persons)
+            foreach (var employee in persons)
             {
-                PersonsTree.Add(new OrganizationStructureModel
-                {
-                    Person = person
-                });
+                var employees = persons.Where(x => x.Manager?.Id == employee.Id);
+
+                employee.Employees = new List<PersonDTO>(employees);
             }
 
-            foreach(var employee in PersonsTree)
-            {
-                var employees = PersonsTree.Where(x => x.Person?.Manager?.Id == employee.Person.Id);
-
-                employee.Employees = new ObservableCollection<OrganizationStructureModel>(employees);
-            }
+            PersonsTree = new ObservableCollection<PersonDTO>(persons.Where(x => x.Manager == null));
         }
 
         #endregion

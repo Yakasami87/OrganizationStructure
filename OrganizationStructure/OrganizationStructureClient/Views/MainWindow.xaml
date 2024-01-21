@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OrganizationStructureClient"
         xmlns:vm="clr-namespace:OrganizationStructureClient.ViewModels"
-        xmlns:treeDataType="clr-namespace:OrganizationStructureClient.Models"
+        xmlns:treeDataType="clr-namespace:OrganizationStructureShared.Models.DTOs;assembly=OrganizationStructureShared"
         mc:Ignorable="d"
         Title="OrganizationStructure" Height="450" Width="800">
 
@@ -33,12 +33,52 @@
         <Border Grid.Row="1" Margin="5, 10" BorderBrush="DimGray" BorderThickness="1">
             <TreeView ItemsSource="{Binding PersonsTree}">
                 <TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate DataType="{x:Type treeDataType:OrganizationStructureModel}" ItemsSource="{Binding Employees}">
-                        <TextBlock Text="{Binding Person.FirstName}"/>
+                    <HierarchicalDataTemplate DataType="{x:Type treeDataType:PersonDTO}" ItemsSource="{Binding Employees}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding FirstName}"  FontWeight="Bold" />
+                            <TextBlock Text="{Binding LastName}" Margin="5,0,0,0"  FontWeight="Bold"/>
+                            <TextBlock Text="-" Margin="5,0,0,0"/>
+                            <TextBlock Text="{Binding Role.Name}" Margin="5,0,0,0" Foreground="LimeGreen" FontWeight="DemiBold"/>
+                        </StackPanel>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
             </TreeView>
         </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Height="50" Width="50" VerticalAlignment="Center"
+                    Command=""
+                    Margin="10,0" 
+                    ToolTip="Add Person">
+                <Rectangle Width="32" Height="32">
+                    <Rectangle.Fill>
+                        <VisualBrush Visual="{DynamicResource PersonAdd}"/>
+                    </Rectangle.Fill>
+                </Rectangle>
+            </Button>
+            <Button Height="50" Width="50" VerticalAlignment="Center"
+                    Command=""
+                    Margin="10,0" 
+                    ToolTip="Edit Person">
+                <Rectangle Width="32" Height="32">
+                    <Rectangle.Fill>
+                        <VisualBrush Visual="{DynamicResource PersonEdit}"/>
+                    </Rectangle.Fill>
+                </Rectangle>
+                
+            </Button>
+            <Button Height="50" Width="50" VerticalAlignment="Center"
+                    Command=""
+                    Margin="10,0" 
+                    ToolTip="Remove Person">
+                <Rectangle Width="32" Height="32">
+                    <Rectangle.Fill>
+                        <VisualBrush Visual="{DynamicResource PersonRemove}"/>
+                    </Rectangle.Fill>
+                </Rectangle>
+            </Button>
+
+        </StackPanel>
 
         <StackPanel Grid.Row="3" HorizontalAlignment="Right" Margin="-5">
             <Label Content="{Binding AssemblyVersion}"/>

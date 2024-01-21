@@ -13,5 +13,6 @@ namespace OrganizationStructureShared.Models.DTOs
         public string LastName { get; set; }
         public PersonDTO? Manager { get; set; }
         public RoleDTO Role { get; set; }
+        public List<PersonDTO> Employees { get; set; } = new List<PersonDTO>();
     }
 }

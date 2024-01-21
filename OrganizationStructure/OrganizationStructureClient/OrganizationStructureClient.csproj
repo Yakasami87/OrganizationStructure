@@ -10,6 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Images\Person-Add.png" />
+    <None Remove="Resources\Images\Person-Edit.png" />
+    <None Remove="Resources\Images\Person-Remove.png" />
     <None Remove="Resources\Images\Thales.png" />
   </ItemGroup>
 
@@ -23,6 +26,9 @@
 
   <ItemGroup>
     <Resource Include="Resources\Images\Thales.png" />
+    <Resource Include="Resources\Images\Person-Add.png" />
+    <Resource Include="Resources\Images\Person-Edit.png" />
+    <Resource Include="Resources\Images\Person-Remove.png" />
   </ItemGroup>
 
 </Project>
