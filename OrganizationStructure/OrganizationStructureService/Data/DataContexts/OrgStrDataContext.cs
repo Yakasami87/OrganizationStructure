@@ -69,7 +69,9 @@ namespace OrganizationStructureService.Data.DataContexts
             modelBuilder.Entity<Person>()
                   .HasOne(u => u.Role)
                   .WithMany(r => r.Persons)
-                  .HasForeignKey(u => u.RoleId);
+                  .HasForeignKey(u => u.RoleId)
+                  .IsRequired(false)
+                  .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

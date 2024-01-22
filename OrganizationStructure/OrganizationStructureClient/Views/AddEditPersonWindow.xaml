@@ -149,7 +149,7 @@
                                Text="Role:"/>
 
                     <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal">
-                        <ComboBox  Style="{StaticResource LabelComboBox}" ItemsSource="{Binding Path=Roles}" SelectedItem="{Binding Role}">
+                        <ComboBox  Style="{StaticResource LabelComboBox}" ItemsSource="{Binding Path=Roles}" SelectedItem="{Binding Role, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">

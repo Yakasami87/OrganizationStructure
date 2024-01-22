@@ -37,7 +37,12 @@
         </StackPanel>
 
         <Border Grid.Row="1" Margin="5, 10" BorderBrush="DimGray" BorderThickness="1">
-            <TreeView ItemsSource="{Binding PersonsTree}">
+            <TreeView x:Name="tvPersons" ItemsSource="{Binding PersonsTree}" SelectedValuePath="{Binding SelectedPerson}">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="True"/>
+                    </Style>
+                </TreeView.ItemContainerStyle>
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate DataType="{x:Type treeDataType:PersonDTO}" ItemsSource="{Binding Employees}">
                         <StackPanel Orientation="Horizontal">

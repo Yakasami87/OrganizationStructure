@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Xaml.Behaviors;
 using OrganizationStructureClient.Messages.Messages;
+using OrganizationStructureClient.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,12 @@ namespace OrganizationStructureClient.Behaviors
 {
     public class ModalWindowBehavior : Behavior<Window>
     {
-        private IMessenger messenger;
+        protected IMessenger messenger;
+
+        protected BaseModalViewModel VM
+        {
+            get => this.AssociatedObject.DataContext as BaseModalViewModel;
+        }
 
         protected override void OnAttached()
         {
@@ -35,14 +41,14 @@ namespace OrganizationStructureClient.Behaviors
 
         protected virtual void AssociatedObject_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
-            messenger.Register<ConfirmMessage>(this, (r, m) => ConfirmMessage_Handler(m));
-            messenger.Register<CloseMessage>(this, (r, m) => CloseMessage_Handler(m));
+            messenger.Register<ConfirmMessage, Guid>(this, VM.messageToken, (r, m) => ConfirmMessage_Handler(m));
+            messenger.Register<CloseMessage, Guid>(this, VM.messageToken, (r, m) => CloseMessage_Handler(m));
         }
 
         protected virtual void AssociatedObject_Unloaded(object sender, System.Windows.RoutedEventArgs e)
         {
-            messenger.Unregister<ConfirmMessage>(this);
-            messenger.Unregister<CloseMessage>(this);
+            messenger.Unregister<ConfirmMessage, Guid>(this, VM.messageToken);
+            messenger.Unregister<CloseMessage, Guid>(this, VM.messageToken);
 
             this.Detach();
         }

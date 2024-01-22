@@ -8,15 +8,15 @@
         xmlns:vm="clr-namespace:OrganizationStructureClient.ViewModels"
         xmlns:behavior="clr-namespace:OrganizationStructureClient.Behaviors"
         mc:Ignorable="d"
-        Title="Add/Edit Role" Height="300" Width="800" ResizeMode="NoResize">
+        Title="Add/Edit Role" Height="200" Width="800" ResizeMode="NoResize">
 
-    <!--<Window.DataContext>
+    <Window.DataContext>
         <vm:AddEditRoleViewModel/>
-    </Window.DataContext>-->
+    </Window.DataContext>
 
-    <!--<i:Interaction.Behaviors>
+    <i:Interaction.Behaviors>
         <behavior:AddEditRoleWindowBehavior/>
-    </i:Interaction.Behaviors>-->
+    </i:Interaction.Behaviors>
 
     <Window.Resources>
         <ResourceDictionary>
@@ -55,13 +55,6 @@
                         </Style.Triggers>
                     </Style>
 
-                    <Style x:Key="LabelComboBox" TargetType="{x:Type ComboBox}">
-                        <Setter Property="Width" Value="250"/>
-                        <Setter Property="FontSize" Value="12"/>
-                        <Setter Property="Margin" Value="10,0"/>
-                        <Setter Property="VerticalAlignment" Value="Center"/>
-                    </Style>
-
                     <Style x:Key="LabelErrorMessage" TargetType="{x:Type Label}">
                         <Setter Property="Foreground" Value="Red"/>
                     </Style>
@@ -85,7 +78,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Border Grid.Row="0" Style="{StaticResource BorderGroup}" Margin="5">
-                <Grid Margin="5" >
+                <Grid Margin="5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="130"/>
                         <ColumnDefinition Width="Auto"/>
@@ -95,9 +88,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="30" />
                         <RowDefinition Height="30" />
-                        <RowDefinition Height="30" />
-                        <RowDefinition Height="30" />
-                        <RowDefinition Height="30" />
+
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Style="{StaticResource HeaderTextBlock}" 

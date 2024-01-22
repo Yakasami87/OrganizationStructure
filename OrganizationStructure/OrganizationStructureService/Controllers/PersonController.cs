@@ -54,9 +54,9 @@ namespace OrganizationStructureService.Controllers
         }
 
         [HttpPost("Delete-Person")]
-        public async Task<ActionResult<ServiceResponse<bool>>> DeletePerson(int personId)
+        public async Task<ActionResult<ServiceResponse<bool>>> DeletePerson(PersonDTO personDTO)
         {
-            var response = await _personService.DeletePersons(personId);
+            var response = await _personService.DeletePersons(personDTO.Id);
 
             if (!response.Success) return BadRequest(response);
 

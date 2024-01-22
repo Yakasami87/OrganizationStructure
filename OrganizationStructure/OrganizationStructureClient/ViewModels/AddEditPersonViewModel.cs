@@ -1,6 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.VisualBasic.ApplicationServices;
+using OrganizationStructureClient.Messages.Messages;
 using OrganizationStructureShared.Models;
 using OrganizationStructureShared.Models.DTOs;
 using System;
@@ -12,6 +15,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 using System.Xml.Linq;
 
 namespace OrganizationStructureClient.ViewModels
@@ -21,12 +25,17 @@ namespace OrganizationStructureClient.ViewModels
         #region Private Properties
 
         private IMessenger messenger;
-        public Guid messageToken;
+        public Guid messageToken = Guid.NewGuid();
 
         private bool _hasChanges = false;    
 
         private ObservableCollection<PersonDTO> _persons = null;
         private ObservableCollection<RoleDTO> _roles = null;
+
+        private IAsyncRelayCommand _addRoleCommand;
+        private IAsyncRelayCommand _editRoleCommand;
+        private IAsyncRelayCommand _removeRoleCommand;
+
 
         #endregion
 
@@ -40,8 +49,23 @@ namespace OrganizationStructureClient.ViewModels
         protected override async Task Confirm()
         {
             try
-            {              
-                var response = await HttpClient.PostAsJsonAsync("api/Person/Create-Person", Person);
+            {    
+                if(Person.Id == 0)
+                {
+                    var result = await HttpClient.PostAsJsonAsync("api/Person/Create-Person", Person);
+                    
+                    var response = await result.Content.ReadFromJsonAsync<ServiceResponse<bool>>();
+
+                    if (response == null || !response.Success) throw new Exception($"Unable to create {Person.FirstName} {Person.LastName}");
+                }
+                else
+                {
+                    var result = await HttpClient.PostAsJsonAsync("api/Person/Update-Person", Person);
+
+                    var response = await result.Content.ReadFromJsonAsync<ServiceResponse<bool>>();
+
+                    if (response == null || !response.Success) throw new Exception($"Unable to update {Person.FirstName} {Person.LastName}");
+                }
 
                 await base.Confirm();
 
@@ -50,7 +74,7 @@ namespace OrganizationStructureClient.ViewModels
             }
             catch (Exception e)
             {
-                MessageBox.Show($"{e.Message}", "Save User Informations Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{e.Message}", "Save Person Informations Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -63,6 +87,7 @@ namespace OrganizationStructureClient.ViewModels
             get => $"ver. {GetType().Assembly.GetName().Version}";
         }
         public HttpClient HttpClient { get; set; }
+        public HubConnection ConnectionHub { get; set; }
         public PersonDTO Person { get; set; } = new PersonDTO();
 
         public bool HasChanges
@@ -118,6 +143,16 @@ namespace OrganizationStructureClient.ViewModels
             set => SetProperty(ref _roles, value);
         }
 
+        private bool CanEditRole()
+        {
+            return Role != null;
+        }
+
+        private bool CanRemoveRole()
+        {
+            return Role != null;
+        }
+
         #endregion
 
         #region Constructor
@@ -127,13 +162,15 @@ namespace OrganizationStructureClient.ViewModels
 
         }
 
-        public AddEditPersonViewModel(HttpClient httpClient)
+        public AddEditPersonViewModel(HttpClient httpClient, HubConnection connectionHub)
         {
             try
             {
                 messenger = Ioc.Default.GetService<IMessenger>();
 
                 HttpClient = httpClient;
+
+                ConnectionHub = connectionHub;
 
                 Initialize();
 
@@ -146,18 +183,52 @@ namespace OrganizationStructureClient.ViewModels
         }
         #endregion
 
+        #region Commands
+
+        public IAsyncRelayCommand AddRoleCommand
+        {
+            get => _addRoleCommand ?? (_addRoleCommand =
+                new AsyncRelayCommand(AddRoleAsync));
+        }
+
+        public IAsyncRelayCommand EditRoleCommand
+        {
+            get => _editRoleCommand ?? (_editRoleCommand =
+                new AsyncRelayCommand(EditRoleAsync, CanEditRole));
+        }
+
+        public IAsyncRelayCommand RemoveRoleCommand
+        {
+            get => _removeRoleCommand ?? (_removeRoleCommand =
+                new AsyncRelayCommand(RemoveRoleAsync, CanRemoveRole));
+        }
+
+        #endregion
+
         #region Public Methods
 
         public async void Initialize()
         {
             try
             {
+                ConnectionHub.On("Refresh", new Action<string>(async (arg) =>
+                {
+                    switch (arg)
+                    {
+                        case "Persons":
+                            await LoadPersons();
+                            break;
+                        case "Roles":
+                            await LoadRoles();
+                            break;
+                    }
+                }));
+
                 await LoadPersons();
                 await LoadRoles();
 
-                Manager = Person.Manager == null ? Persons.First() : Person.Manager;
-                Role = Person.Role == null ? Roles.First() : Person.Role;
-
+                Manager = Person.Manager == null ? Persons.First() : Persons.First(x => x?.Id == Person.Manager?.Id);
+                Role = Person.Role == null ? Roles.First() : Roles.First(x => x?.Id == Person.Role?.Id);
             }
             catch (Exception ex)
             {
@@ -199,11 +270,61 @@ namespace OrganizationStructureClient.ViewModels
                 if (response == null || response.Data == null) throw new Exception("Unable to load Roles.");
 
                 Roles = new ObservableCollection<RoleDTO>(response.Data);
+                Roles.Insert(0, null);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"{ex}", "Load Roles Error",
                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async Task AddRoleAsync()
+        {
+            try
+            {
+                await Dispatcher.CurrentDispatcher.InvokeAsync(() => messenger.Send(new AddRoleMessage(HttpClient), messageToken));
+            }
+            catch (Exception)
+            {
+                MessageBox.Show($"Unable to add role", "Add Role Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async Task EditRoleAsync()
+        {
+            try
+            {
+                await Dispatcher.CurrentDispatcher.InvokeAsync(() => messenger.Send(
+                    new EditRoleMessage(HttpClient, Role), messageToken));
+            }
+            catch (Exception)
+            {
+                MessageBox.Show($"Unable to edit role", "Edit Role Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+
+        private async Task RemoveRoleAsync()
+        {
+            try
+            {
+                var confirmation = MessageBox.Show($"Are you sure you want to permanently remove {Role.Name}?",
+                    "Remove Role Confirmation",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+                if (confirmation != DialogResult.Yes) return;
+
+                var result = await HttpClient.PostAsJsonAsync("api/Role/Delete-Role", Role);
+
+                var response = await result.Content.ReadFromJsonAsync<ServiceResponse<bool>>();
+
+                if (response == null || !response.Success) throw new Exception($"Unable to remove {Role.Name}");
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show($"{e.Message}", "Remove Person Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

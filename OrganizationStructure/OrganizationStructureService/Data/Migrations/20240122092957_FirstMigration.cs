@@ -34,7 +34,7 @@ namespace OrganizationStructureService.Data.Migrations
                     FirstName = table.Column<string>(type: "TEXT", nullable: false),
                     LastName = table.Column<string>(type: "TEXT", nullable: false),
                     ManagerId = table.Column<int>(type: "INTEGER", nullable: true),
-                    RoleId = table.Column<int>(type: "INTEGER", nullable: false)
+                    RoleId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -50,7 +50,7 @@ namespace OrganizationStructureService.Data.Migrations
                         column: x => x.RoleId,
                         principalTable: "Roles",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.InsertData(

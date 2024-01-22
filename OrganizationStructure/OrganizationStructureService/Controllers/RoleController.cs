@@ -55,9 +55,9 @@ namespace OrganizationStructureService.Controllers
         }
 
         [HttpPost("Delete-Role")]
-        public async Task<ActionResult<ServiceResponse<bool>>> DeleteRole(int roleId)
+        public async Task<ActionResult<ServiceResponse<bool>>> DeleteRole(RoleDTO roleDTO)
         {
-            var response = await _roleService.DeleteRoles(roleId);
+            var response = await _roleService.DeleteRoles(roleDTO.Id);
 
             if (!response.Success) return BadRequest(response);
 

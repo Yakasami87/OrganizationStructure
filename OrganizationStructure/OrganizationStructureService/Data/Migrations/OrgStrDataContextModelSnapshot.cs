@@ -2,7 +2,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OrganizationStructureService.Data.DataContexts;
 
@@ -11,11 +10,9 @@ using OrganizationStructureService.Data.DataContexts;
 namespace OrganizationStructureService.Data.Migrations
 {
     [DbContext(typeof(OrgStrDataContext))]
-    [Migration("20240119072136_FirstMigration")]
-    partial class FirstMigration
+    partial class OrgStrDataContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.1");
@@ -37,7 +34,7 @@ namespace OrganizationStructureService.Data.Migrations
                     b.Property<int?>("ManagerId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RoleId")
+                    b.Property<int?>("RoleId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -116,8 +113,7 @@ namespace OrganizationStructureService.Data.Migrations
                     b.HasOne("OrganizationStructureService.Data.Models.Role", "Role")
                         .WithMany("Persons")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Manager");
 

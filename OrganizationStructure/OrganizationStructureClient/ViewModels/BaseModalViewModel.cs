@@ -16,6 +16,8 @@ namespace OrganizationStructureClient.ViewModels
     public class BaseModalViewModel : ObservableRecipient, IDataErrorInfo
     {
         private IMessenger messenger;
+        public Guid messageToken = Guid.NewGuid();
+
         private bool _hasError;
         public Dictionary<string, string> ErrorCollection { get; private set; } = new Dictionary<string, string>();
 
@@ -44,7 +46,7 @@ namespace OrganizationStructureClient.ViewModels
             get => _closeCommand ?? (_closeCommand =
                     new AsyncRelayCommand(async () =>
                     {
-                        await Dispatcher.CurrentDispatcher.InvokeAsync(() => messenger.Send(new CloseMessage()));
+                        await Dispatcher.CurrentDispatcher.InvokeAsync(() => messenger.Send(new CloseMessage(), messageToken));
                     }));
         }
 
@@ -56,7 +58,7 @@ namespace OrganizationStructureClient.ViewModels
 
         protected virtual async Task Confirm()
         {
-            await Dispatcher.CurrentDispatcher.InvokeAsync(() => messenger.Send(new ConfirmMessage()));
+            await Dispatcher.CurrentDispatcher.InvokeAsync(() => messenger.Send(new ConfirmMessage(), messageToken));
         }
 
         protected virtual bool CanConfirm()

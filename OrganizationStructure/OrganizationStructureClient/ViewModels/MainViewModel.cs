@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.VisualBasic.ApplicationServices;
 using OrganizationStructureClient.Messages.Messages;
 using OrganizationStructureShared.Models;
 using OrganizationStructureShared.Models.DTOs;
@@ -31,29 +32,18 @@ namespace OrganizationStructureClient.ViewModels
         #region Private Properties
 
         private IMessenger messenger;
-        public Guid messageToken;
+        public Guid messageToken = Guid.NewGuid();
 
         private HttpClient _httpClient;
         private HubConnection _connectionHub;
         private ObservableCollection<PersonDTO> _personsTree = null;
+        private PersonDTO _selectedPerson = null;
 
         private IAsyncRelayCommand _addPersonCommand;
         private IAsyncRelayCommand _editPersonCommand;
         private IAsyncRelayCommand _removePersonCommand;
 
-        #endregion
-
-        #region Constructor
-
-        public MainViewModel()
-        {
-            messenger = Ioc.Default.GetService<IMessenger>();
-            messageToken = Guid.NewGuid();       
-
-            Initialize();
-        }
-
-        #endregion
+        #endregion      
 
         #region Public Properties
 
@@ -69,6 +59,41 @@ namespace OrganizationStructureClient.ViewModels
             set => SetProperty(ref _personsTree, value);
         }
 
+        public PersonDTO SelectedPerson
+        {
+            get => _selectedPerson;
+
+            set
+            {
+                SetProperty(ref _selectedPerson, value);
+                EditPersonCommand.NotifyCanExecuteChanged();
+                RemovePersonCommand.NotifyCanExecuteChanged();
+            }
+        }
+
+        private bool CanEditPerson()
+        {
+            return SelectedPerson != null;
+        }
+
+        private bool CanRemovePerson()
+        {
+            return SelectedPerson != null;
+        }
+
+        #endregion
+
+
+        #region Constructor
+
+        public MainViewModel()
+        {
+            messenger = Ioc.Default.GetService<IMessenger>();
+            messageToken = Guid.NewGuid();
+
+            Initialize();
+        }
+
         #endregion
 
         #region Commands
@@ -77,6 +102,18 @@ namespace OrganizationStructureClient.ViewModels
         {
             get => _addPersonCommand ?? (_addPersonCommand =
                 new AsyncRelayCommand(AddPersonAsync));
+        }
+
+        public IAsyncRelayCommand EditPersonCommand
+        {
+            get => _editPersonCommand ?? (_editPersonCommand =
+                new AsyncRelayCommand(EditPersonAsync, CanEditPerson));
+        }
+
+        public IAsyncRelayCommand RemovePersonCommand
+        {
+            get => _removePersonCommand ?? (_removePersonCommand =
+                new AsyncRelayCommand(RemovePersonAsync, CanRemovePerson));
         }
 
         #endregion
@@ -94,7 +131,7 @@ namespace OrganizationStructureClient.ViewModels
 
                 _connectionHub = new HubConnectionBuilder()
                 .WithUrl("https://localhost:7221/messageHub")
-                .Build();              
+                .Build();
 
                 _connectionHub.On("Refresh", new Action<string>(async (arg) =>
                 {
@@ -146,11 +183,48 @@ namespace OrganizationStructureClient.ViewModels
         {
             try
             {
-                await Dispatcher.CurrentDispatcher.InvokeAsync(() => messenger.Send(new AddPersonMessage(_httpClient), messageToken));
+                await Dispatcher.CurrentDispatcher.InvokeAsync(() => messenger.Send(new AddPersonMessage(_httpClient, _connectionHub), messageToken));
             }
             catch (Exception)
             {
                 MessageBox.Show($"Unable to add person", "Add Person Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async Task EditPersonAsync()
+        {
+            try
+            {
+                await Dispatcher.CurrentDispatcher.InvokeAsync(() => messenger.Send(
+                    new EditPersonMessage(_httpClient, _connectionHub, SelectedPerson), messageToken));
+            }
+            catch (Exception)
+            {
+                MessageBox.Show($"Unable to edit person", "Edit Person Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+
+        private async Task RemovePersonAsync()
+        {
+            try
+            {
+                var confirmation = MessageBox.Show($"Are you sure you want to permanently remove {SelectedPerson.FirstName} {SelectedPerson.LastName}?",
+                    "Remove Person Confirmation",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+                if (confirmation != DialogResult.Yes) return;
+
+                var result = await _httpClient.PostAsJsonAsync("api/Person/Delete-Person", SelectedPerson);
+
+                var response = await result.Content.ReadFromJsonAsync<ServiceResponse<bool>>();
+
+                if (response == null || !response.Success) throw new Exception($"Unable to remove {SelectedPerson.FirstName} {SelectedPerson.LastName}");
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show($"{e.Message}", "Remove Person Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
