@@ -97,6 +97,8 @@ namespace OrganizationStructureClient.ViewModels
             set
             {
                 SetProperty(ref _hasChanges, value);
+                EditRoleCommand.NotifyCanExecuteChanged();
+                RemoveRoleCommand.NotifyCanExecuteChanged();
                 ConfirmCommand.NotifyCanExecuteChanged();
             }
         }
